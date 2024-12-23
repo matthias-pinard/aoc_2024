@@ -2,58 +2,60 @@ package main
 
 import (
 	_ "embed"
-	"slices"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
-//go:embed input/1.input
+//go:embed input/2.input
 var input string
 
 func main() {
-	l1 := make([]int, 0)
-	l2 := make([]int, 0)
+	l := make([][]int, 0)
 	for _, s := range strings.Split(input, "\n") {
-		v := strings.Split(s, "   ")
-		v1, _ := strconv.Atoi(v[0])
-		v2, _ := strconv.Atoi(v[1])
-		l1 = append(l1, v1)
-		l2 = append(l2, v2)
+		v := strings.Split(s, " ")
+		if len(v) == 1 {
+			continue
+		}
+		l1 := make([]int, 0)
+		for _, n := range v {
+			p, _ := strconv.Atoi(n)
+			l1 = append(l1, p)
+		}
+		l = append(l, l1)
 	}
 
-	mapCount := make(map[int]int)
-
-	for _, v := range l2 {
-		mapCount[v] += 1
+	safe := 0
+	for _, r := range l {
+		fmt.Printf("v: %+v\n", r)
+		if checkSafe(r) {
+			safe += 1
+		} else {
+			for i := range len(r) {
+				sr := append([]int{}, r[:i]...)
+				sr = append(sr, r[i+1:]...)
+				if checkSafe(sr) {
+					safe += 1
+					break
+				}
+			}
+		}
 	}
-	acc := 0
-	for _, v := range l1 {
-		acc += v * mapCount[v]
-		// println(acc)
-	}
-	println(acc)
+	print(safe)
 }
 
-func Part1() {
-	l1 := make([]int, 0)
-	l2 := make([]int, 0)
-	for _, s := range strings.Split(input, "\n") {
-		v := strings.Split(s, "   ")
-		v1, _ := strconv.Atoi(v[0])
-		v2, _ := strconv.Atoi(v[1])
-		l1 = append(l1, v1)
-		l2 = append(l2, v2)
+func checkSafe(r []int) bool {
+	inc := r[0]-r[1] < 0
+	for i := range len(r) - 1 {
+		e := r[i+1] - r[i]
+		if abs(e) < 1 || abs(e) > 3 {
+			return false
+		}
+		if (inc && e < 0) || (!inc && e > 0) {
+			return false
+		}
 	}
-	slices.Sort(l1)
-	slices.Sort(l2)
-
-	acc := 0
-	for i, v1 := range l1 {
-		v2 := l2[i]
-		acc += abs(v1 - v2)
-		// println(acc)
-	}
-	println(acc)
+	return true
 }
 
 func abs(v int) int {
@@ -61,4 +63,32 @@ func abs(v int) int {
 		return v
 	}
 	return -v
+}
+
+func Part1() {
+	l := make([][]int, 0)
+	for _, s := range strings.Split(input, "\n") {
+		v := strings.Split(s, " ")
+		if len(v) == 1 {
+			continue
+		}
+		l1 := make([]int, 0)
+		for _, n := range v {
+			p, _ := strconv.Atoi(n)
+			l1 = append(l1, p)
+		}
+		l = append(l, l1)
+	}
+
+	safe := 0
+	for _, r := range l {
+		fmt.Printf("v: %+v\n", r)
+		if checkSafe(r) {
+			println("safe")
+			safe += 1
+		} else {
+			println("unsafe")
+		}
+	}
+	print(safe)
 }
